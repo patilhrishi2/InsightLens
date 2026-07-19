@@ -51,6 +51,7 @@ Candidate's Resume:
 7. **Final Feedback:**
    - Offer detailed, actionable, positive suggestions to improve the resume.
    - Write this as a single continuous paragraph. Do NOT use numbered lists, bullet points, or line breaks inside this field.
+   - Do NOT write "1.", "2.", "3." or any numbering. Do NOT use "-" or "*" as list markers. Write flowing prose only.
 
 8. **Eligibility Criteria**
    - Set "eligible" flag to true ONLY IF "education_flag" is true AND "experience_flag" is true
@@ -91,4 +92,5 @@ Important:
 - All JSON keys must be included.
 - Return JSON in a single compact line, no line breaks.
 - The order of the JSON keys must exactly match the provided structure. Start with 'eligible'.
+- All string fields ("education_feedback", "experience_feedback", "soft_skills_feedback", "final_feedback") must be plain prose sentences only. Do NOT use numbered lists, bullet points, dashes, asterisks, newlines, or any markdown formatting inside any string field. Write everything as continuous flowing text.
 """

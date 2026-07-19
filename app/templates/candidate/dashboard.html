@@ -327,7 +327,7 @@ if (result.must_have_skills_missing.length > 0 || result.good_to_have_skills_mis
     skillsImprovementSuggestions += `Excellent! All required skills are covered.`;
 }
 
-let finalSuggestions = result.final_feedback || 'No feedback provided.';
+let finalSuggestions = result.final_feedback.split('. ').filter(s => s.trim() !== '').map(s => `<li>${s.trim()}</li>`).join('');
 
 let comparisonHtml = `
     <h3>Resume Evaluation Summary:</h3>
@@ -342,7 +342,7 @@ let comparisonHtml = `
         <li><strong>Missing Good-to-Have Skills:</strong> ${result.good_to_have_skills_missing.join(', ')}</li>
         <li><strong>Skills Suggestions:</strong> ${skillsImprovementSuggestions}</li>
         <li><strong>Soft Skills Feedback:</strong> ${result.soft_skills_feedback}</li>
-        <li><strong>Final Suggestions:</strong> ${finalSuggestions}</li>
+        <li><strong>Final Suggestions:</strong> <ul>${finalSuggestions}</ul></li>
     </ul>
 `;
 
