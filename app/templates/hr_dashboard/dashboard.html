@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <title>HR Batch Processor</title>
+
+    <!-- ✅ Your CSS is already correctly linked here -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- ✅ Add Montserrat and Tangerine fonts (important!) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat+Alternates:wght@700&family=Tangerine:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            margin-top: 150px;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 90%;
+        }
+
+        #navbar {
+            transition: top 0.3s;
+            background-color: white;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-text {
+            font-family: "Montserrat Alternates", serif;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 5px;
+        }
+
+        .title-font-span {
+            font-family: "Tangerine", cursive;
+            font-size: 24px;
+            color: #0077ff;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            color: #555555;
+        }
+
+        input[type="file"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #0077ff;
+            outline: none;
+        }
+
+        /* ✅ Use common button style */
+        button {
+            display: block;
+            width: 100%;
+            background-color: #0077ff;
+            color: white;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005ecc;
+        }
+
+        /* ✅ Custom style for navbar buttons (overwrite full width) */
+        .navbar-button {
+            width: auto;
+            padding: 6px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #0077ff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        .navbar-button:hover {
+            background-color: #005ecc;
+        }
+
+        #statusMessage {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: green;
+        }
+
+        #batchResults {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background-color: #f4f4f4;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .result-card p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .loader {
+            text-align: center;
+            color: #888;
+            font-size: 16px;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- <div class="container"> -->
+    <header id="navbar" class="d-flex flex-wrap justify-content-between align-items-center py-1 mb-0 border-bottom fixed-top">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <img src="{{ url_for('static', filename='images/lens_logo.jpg') }}" height="40" style="margin-left: 5px; margin-right: 5px;">
+            <span class="navbar-text">Insight</span><span class="title-font-span">Lens</span>
+        </a>
+
+        <ul class="nav nav-pills">
+            {% if 'email' in session %}
+                <li class="nav-item">
+                    <a href="{{ url_for('auth.logout') }}">
+                        <button type="button" class="navbar-button" style="font-family: Montserrat Alternates, serif;">Logout</button>
+                    </a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a href="{{ url_for('auth.login_page') }}">
+                        <button type="button" class="navbar-button" style="font-family: Montserrat Alternates, serif;">Login</button>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('register_page') }}">
+                        <button type="button" class="navbar-button" style="font-family: Montserrat Alternates, serif;">Sign Up</button>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </header>
+<!-- </div> -->
+
+    <div class="container">
+        <h2>HR Batch Processor</h2>
+
+        <form id="batchForm" enctype="multipart/form-data">
+            <label for="resumes">Upload Resume PDFs (Multiple):</label>
+            <input type="file" id="resumes" name="resumes" accept=".pdf" multiple required>
+
+            <label for="jd">Paste Job Description Text:</label>
+            <textarea id="jd" name="jd" placeholder='Paste the raw JD text here...' required style="height: 300px;"></textarea>
+
+            <label for="modelSelect">Select Model:</label>
+            <select id="modelSelect" name="model" required>
+                <option value="gemma3">Gemma 4</option>
+                <option value="llama3.1-instant">LLaMA 3.1 Instant</option>
+                <option value="gemini1.5-flash">Gemini 1.5 Flash</option>
+            </select>
+
+            <button type="submit">Start Batch Processing</button>
+        </form>
+        <div id="batchResults"></div>
+        <div id="statusMessage"></div>
+<!-- Loading Spinner -->
+<div id="loadingSpinner" style="display:none; margin: 20px auto; border: 8px solid #f3f3f3; border-top: 8px solid #0077ff; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite;"></div>
+
+        <div id="gemmaResults"></div>
+
+
+
+        <!-- ✅ HR Summary Table -->
+        <div id="hrSummaryTable" style="display:none; margin-top: 20px;"></div>
+    </div>
+<style>@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}</style>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let prevScrollPos = window.pageYOffset;
+    window.onscroll = function () {
+        let currentScrollPos = window.pageYOffset;
+        if (prevScrollPos > currentScrollPos) {
+            document.getElementById("navbar").style.top = "0";
+        } else {
+            document.getElementById("navbar").style.top = "-70px";
+        }
+        prevScrollPos = currentScrollPos;
+    };
+        document.getElementById('batchForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            loadingSpinner.style.display = 'block';
+
+
+            const formData = new FormData(this);
+            const resumes = document.getElementById('resumes').files;
+            const jd = document.getElementById('jd').value;
+
+            if (resumes.length === 0) {
+                alert('Please upload at least one resume.');
+                return;
+            }
+
+            formData.append('jd', jd);
+            const model = document.getElementById('modelSelect').value;
+            formData.append('model', model);
+
+            const statusMessage = document.getElementById('statusMessage');
+            const resultsDiv = document.getElementById('batchResults');
+            const gemmaDiv = document.getElementById('gemmaResults');
+
+document.getElementById('loadingSpinner').style.display = 'block';
+resultsDiv.innerHTML = '';
+
+            gemmaDiv.innerHTML = '';
+            statusMessage.innerText = '';
+
+            try {
+                const response = await fetch('/upload-batch', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusMessage.innerText = data.message;
+                    statusMessage.style.color = 'green';
+
+                    // Only poll batch-results for LLaMA — Gemma uses its own async queue
+                    if (model !== 'gemma3') {
+                        pollForResults(data.expected_count);
+                    }
+
+                    if (model === 'gemma3' && data.filenames && data.filenames.length > 0) {
+                        startGemmaPolling(data.filenames);
+                    }
+
+                } else {
+                    statusMessage.innerText = 'Batch upload failed.';
+                    statusMessage.style.color = 'red';
+                    resultsDiv.innerHTML = '';
+                }
+
+            } catch (error) {
+                statusMessage.innerText = 'Error: Server issue or file upload problem.';
+                statusMessage.style.color = 'red';
+                resultsDiv.innerHTML = '';
+            }
+        });
+
+        async function pollForResults(expectedCount) {
+    const resultsDiv = document.getElementById('batchResults');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const maxPollingTime = 10 * 60 * 1000; // 10 minutes max timeout
+    const pollingInterval = 5000; // 5 seconds interval
+    let elapsedTime = 0;
+
+    const intervalId = setInterval(async () => {
+        elapsedTime += pollingInterval;
+
+        if (elapsedTime >= maxPollingTime) {
+            clearInterval(intervalId);
+            loadingSpinner.style.display = 'none';
+            resultsDiv.innerHTML = '<div class="loader" style="color:red;">Timeout: Batch processing took too long. Please try again later.</div>';
+            console.error('Batch processing timed out.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/batch-results?' + new Date().getTime());
+
+            if (response.ok) {
+                const data = await response.json();
+
+                console.log(`[INFO] Fetched ${data.results.length} of ${expectedCount} batch results.`);
+
+                if (data.results.length < expectedCount) {
+                    console.log('Waiting for remaining results...');
+                    return; // Keep polling
+                }
+
+                // All results are fetched
+                clearInterval(intervalId);
+                loadingSpinner.style.display = 'none';
+
+                resultsDiv.innerHTML = '<h3>Batch Results:</h3>';
+
+                data.results.forEach((result, index) => {
+                    resultsDiv.innerHTML += `
+                        <div class="result-card">
+                            <h4>Result ${index + 1}</h4>
+                            <p><strong>Eligible:</strong> ${result.eligible ? 'Yes' : 'No'}</p>
+                            <p><strong>Overall Score:</strong> ${result.overall_score}</p>
+                            <p><strong>Experience Feedback:</strong> ${result.experience_feedback}</p>
+                            <p><strong>Education Feedback:</strong> ${result.education_feedback}</p>
+                            <p><strong>Must Have Skills Matched:</strong> ${result.must_have_skills_matched.join(', ')}</p>
+                            <p><strong>Must Have Skills Missing:</strong> ${result.must_have_skills_missing.join(', ')}</p>
+                            <p><strong>Good to Have Skills Matched:</strong> ${result.good_to_have_skills_matched.join(', ') || 'None'}</p>
+                            <p><strong>Good to Have Skills Missing:</strong> ${result.good_to_have_skills_missing.join(', ') || 'None'}</p>
+                            <p><strong>Soft Skills Feedback:</strong> ${result.soft_skills_feedback}</p>
+                            <p><strong>Final Feedback:</strong> ${result.final_feedback}</p>
+                        </div>
+                    `;
+                });
+
+            } else {
+                console.error('Failed to fetch batch results.');
+            }
+
+        } catch (error) {
+            console.error('An error occurred while fetching results.');
+        }
+    }, pollingInterval);
+}
+
+
+async function startGemmaPolling(filenames) {
+    const gemmaDiv = document.getElementById('gemmaResults');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    let remainingFiles = [...filenames];
+    let collectedResults = [];
+    const maxPollingTime = 15 * 60 * 1000; // 15 minutes max timeout
+    const pollingInterval = 5000; // 5 seconds interval
+    let elapsedTime = 0;
+
+    loadingSpinner.style.display = 'block';
+    gemmaDiv.innerHTML = '';
+
+    const intervalId = setInterval(async () => {
+        elapsedTime += pollingInterval;
+
+        if (elapsedTime >= maxPollingTime) {
+            clearInterval(intervalId);
+            loadingSpinner.style.display = 'none';
+            gemmaDiv.innerHTML += '<div class="loader" style="color:red;">Timeout: Gemma 3 processing took too long. Please try again later.</div>';
+            console.error('Gemma 3 polling timed out.');
+            return;
+        }
+
+        for (let filename of remainingFiles) {
+            try {
+                const response = await fetch(`/gemma3-result/${filename}`);
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (data.status === 'completed') {
+                        const candidateName = data.result.gemma3_output.name || 'Unknown';
+                        const score = data.result.score || 'N/A';
+                        const experience_years = data.result.experience_years || 'N/A';
+                        const eligible = data.result.eligible;
+                        const finalFeedback = data.result.final_feedback || 'No feedback provided';
+
+                        collectedResults.push({
+                            filename: filename,
+                            candidateName: candidateName,
+                            score: score,
+                            experience_years: experience_years,
+                            eligible: eligible,
+                            finalFeedback: finalFeedback,
+                            viewLink: `/static/resumes/${filename}`
+                        });
+
+                        remainingFiles = remainingFiles.filter(f => f !== filename);
+                        console.log(`[INFO] Gemma 3 result fetched for ${filename}`);
+                    } else if (data.status === 'failed') {
+                        // Parsing failed for this file — remove from queue and show as ineligible
+                        collectedResults.push({
+                            filename: filename,
+                            candidateName: 'Parse Failed',
+                            score: 0,
+                            experience_years: 'N/A',
+                            eligible: false,
+                            finalFeedback: 'Resume could not be parsed by Gemma 3.',
+                            viewLink: `/static/resumes/${filename}`
+                        });
+
+                        remainingFiles = remainingFiles.filter(f => f !== filename);
+                        console.log(`[INFO] Gemma 3 processing failed for ${filename}, marked as failed.`);
+                    } else {
+                        console.log(`[INFO] Gemma 3 still processing ${filename}...`);
+                    }
+                } else {
+                    console.error(`Failed to fetch Gemma 3 result for ${filename}`);
+                }
+
+            } catch (error) {
+                console.error(`An error occurred while polling Gemma 3 result for ${filename}`);
+            }
+        }
+
+        // ✅ If all files processed, stop polling and show both tables
+        if (remainingFiles.length === 0) {
+            clearInterval(intervalId);
+            loadingSpinner.style.display = 'none';
+
+            const eligibleResults = collectedResults.filter(result => result.eligible);
+            const ineligibleResults = collectedResults.filter(result => !result.eligible);
+
+            let eligibleTableHTML = `
+                <h3>Gemma 3 Results (Eligible Candidates)</h3>
+                <table id="gemmaResultsTable" style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background:#0077ff; color:white;">
+                            <th style="padding: 8px; border: 1px solid #ddd;">Resume</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Candidate Name</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Score</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Experience (Years)</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">View Resume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${eligibleResults.map(result => `
+                            <tr style="border: 1px solid #ddd;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.filename}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.candidateName}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.score}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.experience_years}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <a href="${result.viewLink}" target="_blank" style="color:#0077ff; text-decoration:none; font-weight:bold;">View</a>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            let ineligibleTableHTML = `
+                <h3>Gemma 3 Results (Ineligible Candidates)</h3>
+                <table id="ineligibleResultsTable" style="width:100%; border-collapse: collapse; margin-top: 40px;">
+                    <thead>
+                        <tr style="background:#ff4d4d; color:white;">
+                            <th style="padding: 8px; border: 1px solid #ddd;">Resume</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Candidate Name</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Score</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Experience (Years)</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Reason for Ineligibility</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">View Resume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ineligibleResults.map(result => `
+                            <tr style="border: 1px solid #ddd;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.filename}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.candidateName}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.score}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${result.experience_years}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; color:red;">${result.finalFeedback}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <a href="${result.viewLink}" target="_blank" style="color:#0077ff; text-decoration:none; font-weight:bold;">View</a>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            gemmaDiv.innerHTML = eligibleTableHTML + ineligibleTableHTML;
+
+            console.log("[INFO] All Gemma 3 results fetched and displayed in two tables.");
+        }
+
+    }, pollingInterval);
+}
+    
+
+
+        async function fetchHrSummary() {
+            try {
+                const response = await fetch('/hr-summary?' + new Date().getTime());
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const summaries = data.summaries;
+
+                    let tableHTML = '<h3>HR Resume Summary:</h3>';
+                    tableHTML += '<table border="1" style="width:100%; text-align:left; border-collapse: collapse;">';
+                    tableHTML += '<tr style="background:#0077ff; color:white;"><th style="padding: 8px;">Resume</th><th style="padding: 8px;">Score</th></tr>';
+
+                    summaries.forEach(summary => {
+                        tableHTML += `
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <a href="${summary.resume_path}" target="_blank" style="color:#0077ff; text-decoration:none;">${summary.filename}</a>
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${summary.score}</td>
+                            </tr>
+                        `;
+                    });
+
+                    tableHTML += '</table>';
+                    document.getElementById('hrSummaryTable').innerHTML = tableHTML;
+
+                } else {
+                    console.error('Failed to fetch HR summary.');
+                }
+            } catch (error) {
+                console.error('An error occurred while fetching HR summary.');
+            }
+        }
+    </script>
+
+</body>
+
+</html>

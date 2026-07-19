@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Resume & JD Parser</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 0;
+    /* ✅ Removed flex properties */
+}
+
+.container {
+    background-color: #ffffff;
+    margin-top: 100px; /* Add more margin to push it below the fixed navbar */
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    width: 90%;
+    /* ✅ Center the container using Bootstrap */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+        h2 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            color: #555555;
+        }
+
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:focus,
+        textarea:focus {
+            border-color: #0077ff;
+            outline: none;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            background-color: #0077ff;
+            color: white;
+            padding: 12px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #005ecc;
+        }
+
+        #result {
+            margin-top: 30px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 6px;
+            color: #444444;
+        }
+
+        h3 {
+            color: #222222;
+        }
+/* Result Section Styling */
+#result {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+#result h3 {
+    color: #28a745; /* Green for success heading */
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+#result h4 {
+    color: #dc3545; /* Red for ineligible heading */
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#result p {
+    font-size: 14px;
+    color: #555555;
+    margin-bottom: 8px;
+}
+
+#result ul {
+    list-style: none;
+    padding: 0;
+}
+
+#result li {
+    background-color: #f8f9fa;
+    margin-bottom: 10px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333333;
+    border-left: 4px solid #0077ff;
+    transition: background-color 0.3s ease;
+}
+
+#result li:hover {
+    background-color: #e9ecef;
+}
+
+#result strong {
+    color: #0077ff;
+}
+
+#result ul ul li {
+    background-color: #e8f0fe;
+    border-left: 4px solid #6c757d;
+}
+        /* Loading Spinner Style */
+        #loadingSpinner {
+            display: none;
+            margin: 20px auto;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #0077ff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+#navbar {
+    width: 100%;
+    background-color: white;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 80px; /* ✅ Controlled height */
+    display: flex;
+    align-items: center; /* ✅ Perfect vertical centering */
+    justify-content: space-between; /* ✅ Items spaced across */
+    padding: 0 20px; /* ✅ Remove extra top/bottom padding */
+}
+
+#navbar img {
+    max-height: 40px; /* ✅ Perfect size for an 80px navbar */
+    height: auto;
+}
+.navbar-button {
+    padding: 6px 12px !important; /* ✅ Slimmer buttons */
+    font-size: 14px;
+    line-height: 1.2; 
+    padding-top: 0;/* ✅ Compress button text height */
+}
+.nav-item{
+    padding-top: 0;
+}
+
+#navbar > a, 
+#navbar > ul {
+    margin: 0;
+    padding: 0;
+}
+
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+            }
+
+            textarea {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <header id="navbar" class="d-flex flex-wrap justify-content-between align-items-center py-1 mb-0 border-bottom fixed-top px-3">
+
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <img src="{{ url_for('static', filename='images/lens_logo.jpg') }}" height="40" style="margin-left: 5px; margin-right: 5px;">
+            <span class="navbar-text">Insight</span><span class="title-font-span">Lens</span>
+        </a>
+
+        <ul class="nav nav-pills">
+            {% if 'email' in session %}
+                <li class="nav-item">
+                    <a href="{{ url_for('auth.logout') }}">
+                        <button type="button" class="navbar-button" style="font-family: Montserrat Alternates, serif;">Logout</button>
+                    </a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a href="{{ url_for('auth.login_page') }}">
+                        <button type="button" class="navbar-button" style="font-family: Montserrat Alternates, serif;">Login</button>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('register_page') }}">
+                        <button type="button" class="navbar-button" style="font-family: Montserrat Alternates, serif;">Sign Up</button>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </header>
+
+    <div class="container">
+        <h2>Upload Resume & Paste Job Description</h2>
+
+        <form id="parseForm" action="parse-all" method="post" enctype="multipart/form-data">
+            <label for="resume">Upload Resume (PDF/DOCX):</label>
+            <input type="file" name="file" id="resume" accept=".pdf,.docx" required>
+
+            <label for="job_description">Job Description:</label>
+            <textarea name="job_description" id="job_description" rows="10" placeholder="Paste Job Description here..." required></textarea>
+
+            <button type="submit">Parse Resume & JD</button>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner"></div>
+
+        <!-- Result Display -->
+        <div id="result"></div>
+    </div>
+
+<style>@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}</style>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let prevScrollPos = window.pageYOffset;
+    window.onscroll = function () {
+        let currentScrollPos = window.pageYOffset;
+        if (prevScrollPos > currentScrollPos) {
+            document.getElementById("navbar").style.top = "0";
+        } else {
+            document.getElementById("navbar").style.top = "-70px";
+        }
+        prevScrollPos = currentScrollPos;
+    };
+        document.getElementById('parseForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const resultDiv = document.getElementById('result');
+
+    loadingSpinner.style.display = 'block';
+    resultDiv.innerHTML = '';
+
+    try {
+        const response = await fetch('/candidate/parse-all', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const result = data.comparison_result;
+
+            resultDiv.innerHTML = `<h5 style="color: green;">${data.message}</h5>`;
+
+            if (result.eligible === false) {
+                resultDiv.innerHTML += `<h5 style="color: red;">The candidate is not eligible based on education or experience.</h5>`;
+                resultDiv.innerHTML += `<p><strong>Education Feedback:</strong> ${result.education_feedback}</p>`;
+                resultDiv.innerHTML += `<p><strong>Experience Feedback:</strong> ${result.experience_feedback}</p>`;
+                return;
+            }
+
+            let skillsImprovementSuggestions = '';
+if (result.must_have_skills_missing.length > 0 || result.good_to_have_skills_missing.length > 0) {
+    skillsImprovementSuggestions += `Consider improving or highlighting these missing skills: `;
+    let allMissingSkills = result.must_have_skills_missing.concat(result.good_to_have_skills_missing);
+    skillsImprovementSuggestions += `<strong>${allMissingSkills.join(', ')}</strong>.`;
+} else {
+    skillsImprovementSuggestions += `Excellent! All required skills are covered.`;
+}
+
+let finalSuggestions = result.final_feedback || 'No feedback provided.';
+
+let comparisonHtml = `
+    <h3>Resume Evaluation Summary:</h3>
+    <ul>
+        <li><strong>Overall Score:</strong> ${result.overall_score} / 100</li>
+        <li><strong>Education Feedback:</strong> ${result.education_feedback}</li>
+        <li><strong>Experience Score:</strong> ${result.experience_score} / 20</li>
+        <li><strong>Experience Feedback:</strong> ${result.experience_feedback}</li>
+        <li><strong>Must-Have Skills Score:</strong> ${result.must_have_score} / 56</li>
+        <li><strong>Missing Must-Have Skills:</strong> ${result.must_have_skills_missing.join(', ')}</li>
+        <li><strong>Good-to-Have Skills Score:</strong> ${result.good_to_have_score} / 24</li>
+        <li><strong>Missing Good-to-Have Skills:</strong> ${result.good_to_have_skills_missing.join(', ')}</li>
+        <li><strong>Skills Suggestions:</strong> ${skillsImprovementSuggestions}</li>
+        <li><strong>Soft Skills Feedback:</strong> ${result.soft_skills_feedback}</li>
+        <li><strong>Final Suggestions:</strong> ${finalSuggestions}</li>
+    </ul>
+`;
+
+
+            resultDiv.innerHTML += comparisonHtml;
+
+        } else {
+            resultDiv.innerHTML = `<h3 style="color: red;">Parsing or Comparison Failed</h3>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<h3 style="color: red;">An error occurred while processing the request.</h3>`;
+    } finally {
+        loadingSpinner.style.display = 'none';
+    }
+});
+
+    </script>
+
+</body>
+
+</html>

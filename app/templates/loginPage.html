@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='LoginPage.css') }}"> <!-- Correct Flask path -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="login-container gradient-background">
+        <div class="login-box">
+            <h2>Login</h2>
+            <p id="error-message" class="error-message" style="display: none;">Login failed. Please check your credentials.</p>
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Email ID:</label>
+                    <input type="email" id="emailID" required>
+                </div>
+                <div class="input-group">
+                    <label>Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="input-group">
+                    <label>Role:</label>
+                    <select id="role" required>
+                        <option value="">Select Role</option>
+                        <option value="candidate">Candidate</option>
+                        <option value="hr">HR</option>
+                    </select>
+                </div>
+                <button type="submit" class="login-button">Login</button>
+
+                <!-- Register Link -->
+                <p class="links">
+                    <a href="{{ url_for('register_page') }}" class="register-now">Register Now</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='LoginPage.js') }}"></script> <!-- Correct Flask path -->
+</body>
+
+</html>

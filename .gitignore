@@ -1,0 +1,91 @@
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+
+# ============================================================
+# Virtual Environment
+# ============================================================
+venv/
+.venv/
+env/
+ENV/
+
+# ============================================================
+# Environment Variables — NEVER commit secrets
+# ============================================================
+.env
+.env.*
+!.env.example
+
+# ============================================================
+# IDE / Editor
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================================
+# OS Generated
+# ============================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================================
+# Data folder — resume PDFs, CSVs, images (large binary files)
+# ============================================================
+data/
+
+# ============================================================
+# Runtime-generated output folders
+# ============================================================
+
+# Uploaded resumes
+app/uploads/
+app/app/uploads/
+
+# Parsed JSON outputs (runtime artifacts)
+app/app/parsed_json/
+app/app/structured_text_output/
+
+# Batch processing results
+app/batch_results/
+
+# Per-file comparison inputs (generated per batch run)
+app/comparison_results/
+
+# ============================================================
+# AI Model files (large binary)
+# ============================================================
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+app/ai_models/
+
+# ============================================================
+# Logs and debug files
+# ============================================================
+*.log
+*.txt.extracted.txt
+app/parsed_json/debug_invalid_json.json
+
+# ============================================================
+# Miscellaneous
+# ============================================================
+*.zip
+*.tar.gz
+*.gz
